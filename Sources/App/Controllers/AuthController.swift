@@ -10,6 +10,7 @@ import Vapor
 
 struct NewSession: Content {
     let token: String
+    let type: String
 }
 
 struct AuthController: RouteCollection {
@@ -30,7 +31,7 @@ struct AuthController: RouteCollection {
         let token = try user.createToken(source: .login)
         
         return token.save(on: req.db).flatMapThrowing {
-            NewSession(token: token.value)
+            NewSession(token: token.value, type: user.accountType)
         }
     }
     
@@ -54,7 +55,7 @@ struct AuthController: RouteCollection {
             token = newToken
             return token.save(on: req.db)
         }.flatMapThrowing {
-            NewSession(token: token.value)
+            NewSession(token: token.value, type: user.accountType)
         }
     }
     
