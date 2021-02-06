@@ -16,7 +16,7 @@ struct CreateUsers: Migration {
             .field("password_hash", .string, .required)
             .field("name", .string, .required)
             .field("surname", .string, .required)
-            .field("districtID", .string, .required)
+            .field("location_id", .int, .references("location-district", "id"), .required)
             .field("accountType", .string, .required)
             .field("phone", .string, .required)
             .unique(on: "phone")

@@ -14,6 +14,12 @@ final class User: Model {
         let id: Int
         let createdAt: Date?
         let updatedAt: Date?
+        let userType: String
+        let phone: String
+        let name: String
+        let surname: String
+        let city: String
+        let district: String
     }
     
     static let schema = "users"
@@ -30,8 +36,8 @@ final class User: Model {
     @Field(key: "surname")
     var surname: String
     
-    @Field(key: "districtID")
-    var districtID: String
+    @Parent(key: "location_id")
+    var location: Location_District
     
     @Field(key: "accountType")
     var accountType: String
@@ -48,16 +54,20 @@ final class User: Model {
     @Timestamp(key: "updated_at", on: .update)
     var updatedAt: Date?
     
+    
+    @Children(for: \.$user)
+    var records: [Record]
+    
     init() {
     }
     
-    init(id: Int? = nil, mail: String, passwordHash: String, name: String, surname: String, districtID: String, accountType: String, phone: String) {
+    init(id: Int? = nil, mail: String, passwordHash: String, name: String, surname: String, locationID: Int, accountType: String, phone: String) {
         self.id = id
         self.mail = mail
         self.passwordHash = passwordHash
         self.name = name
         self.surname = surname
-        self.districtID = districtID
+        self.$location.id = locationID
         self.accountType = accountType
         self.phone = phone
     }
@@ -69,7 +79,7 @@ extension User {
              passwordHash: try Bcrypt.hash(userSignup.password),
              name: userSignup.name,
              surname: userSignup.surname,
-             districtID: userSignup.districtID,
+             locationID: userSignup.locationID,
              accountType: AccountType.user.rawValue,
              phone: userSignup.phone)
     }
@@ -85,7 +95,13 @@ extension User {
         Public(mail: mail,
                id: try requireID(),
                createdAt: createdAt,
-               updatedAt: updatedAt)
+               updatedAt: updatedAt,
+               userType: accountType,
+               phone: phone,
+               name: name,
+               surname: surname,
+               city: location.city.cityName,
+               district: location.districtName)
     }
 }
 

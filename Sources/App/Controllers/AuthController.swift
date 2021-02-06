@@ -10,19 +10,19 @@ import Vapor
 
 struct NewSession: Content {
     let token: String
-    let user: User.Public
 }
 
 struct AuthController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let usersRoute = routes.grouped("users")
         usersRoute.post("signup", use: create)
+        usersRoute.post("login", use: login)
         
         let tokenProtected = usersRoute.grouped(Token.authenticator())
         tokenProtected.get("me", use: getMyOwnUser)
         
-        let passwordProtected = usersRoute.grouped(User.authenticator())
-        passwordProtected.post("login", use: login)
+//        let passwordProtected = usersRoute.grouped(User.authenticator())
+//        passwordProtected.post("login", use: login)
     }
     
     fileprivate func login(req: Request) throws -> EventLoopFuture<NewSession> {
@@ -30,7 +30,7 @@ struct AuthController: RouteCollection {
         let token = try user.createToken(source: .login)
         
         return token.save(on: req.db).flatMapThrowing {
-            NewSession(token: token.value, user: try user.asPublic())
+            NewSession(token: token.value)
         }
     }
     
@@ -54,7 +54,7 @@ struct AuthController: RouteCollection {
             token = newToken
             return token.save(on: req.db)
         }.flatMapThrowing {
-            NewSession(token: token.value, user: try user.asPublic())
+            NewSession(token: token.value)
         }
     }
     

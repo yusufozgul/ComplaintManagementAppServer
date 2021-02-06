@@ -13,13 +13,14 @@ struct Signup: Content {
     let name: String
     let surname: String
     let phone: String
-    let districtID: String
+    let locationID: Int
 }
 
 extension Signup: Validatable {
   static func validations(_ validations: inout Validations) {
     validations.add("mail", as: String.self, is: !.empty)
-    validations.add("districtID", as: String.self, is: !.empty)
+    validations.add("mail", as: String.self, is: .email)
+    validations.add("locationID", as: Int.self, is: .valid)
     validations.add("password", as: String.self, is: .count(6...))
     validations.add("name", as: String.self, is: .count(2...))
     validations.add("surname", as: String.self, is: .count(2...))

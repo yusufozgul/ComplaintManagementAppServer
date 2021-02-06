@@ -27,6 +27,9 @@ public func configure(_ app: Application) throws {
     
     app.migrations.add(CreateUsers())
     app.migrations.add(CreateTokens())
+    app.migrations.add(CreateRecords())
+    app.migrations.add(CreateLocation_City())
+    app.migrations.add(CreateLocation_District())
 
     try app.autoMigrate().wait()
     try routes(app)
