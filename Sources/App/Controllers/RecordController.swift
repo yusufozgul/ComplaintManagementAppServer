@@ -23,8 +23,13 @@ struct RecordController: RouteCollection {
         let user = try req.auth.require(User.self)
         try RecordRequestData.validate(content: req)
         let data = try req.content.decode(RecordRequestData.self)
-        let record = Record(userId: try user.requireID(), title: data.title, body: data.body, locationID: user.$location.id)
-        
+        let record = Record(userId: try user.requireID(),
+                            title: data.title,
+                            body: data.body,
+                            locationID: user.$location.id,
+                            recordType: data.recordType.rawValue,
+                            domain: data.domain.rawValue)
+
         return user.$records.create(record, on: req.db).map { _ in
             return .init(error: false, message: "Ok")
         }

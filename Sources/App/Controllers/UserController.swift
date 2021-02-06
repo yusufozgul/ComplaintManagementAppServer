@@ -20,7 +20,11 @@ struct UserController: RouteCollection {
         let user = try req.auth.require(User.self)
         
         return user.$records.query(on: req.db)
-            .with(\.$user)
+            .with(\.$user) {
+                $0.with(\.$location) {
+                    $0.with(\.$city)
+                }
+            }
             .with(\.$location) {
                 $0.with(\.$city)
             }

@@ -16,6 +16,8 @@ struct CreateRecords: Migration {
             .field("created_at", .datetime, .required)
             .field("title", .string, .required)
             .field("body", .string, .required)
+            .field("recordType", .string, .required)
+            .field("domain", .string, .required)
             .field("location_id", .int, .references("location-district", "id"), .required)
             .create()
     }

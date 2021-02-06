@@ -16,13 +16,13 @@ struct AuthController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let usersRoute = routes.grouped("users")
         usersRoute.post("signup", use: create)
-        usersRoute.post("login", use: login)
+//        usersRoute.post("login", use: login)
         
         let tokenProtected = usersRoute.grouped(Token.authenticator())
         tokenProtected.get("me", use: getMyOwnUser)
         
-//        let passwordProtected = usersRoute.grouped(User.authenticator())
-//        passwordProtected.post("login", use: login)
+        let passwordProtected = usersRoute.grouped(User.authenticator())
+        passwordProtected.post("login", use: login)
     }
     
     fileprivate func login(req: Request) throws -> EventLoopFuture<NewSession> {
@@ -65,8 +65,17 @@ struct AuthController: RouteCollection {
             .map { $0 != nil }
     }
     
-    func getMyOwnUser(req: Request) throws -> User.Public {
-        try req.auth.require(User.self).asPublic()
+    func getMyOwnUser(req: Request) throws -> EventLoopFuture<User.Public> {
+        let user = try req.auth.require(User.self)
+        
+        return User.query(on: req.db)
+            .filter(\.$id == user.id ?? 0)
+            .with(\.$location) {
+                $0.with(\.$city)
+            }
+            .first()
+            .unwrap(or: Abort(.notFound))
+            .flatMapThrowing { try $0.asPublic() }
     }
 }
 
