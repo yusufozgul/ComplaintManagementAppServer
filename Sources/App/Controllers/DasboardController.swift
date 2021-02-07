@@ -21,28 +21,33 @@ struct DasboardController: RouteCollection {
     
     fileprivate func getRecords(req: Request) throws -> EventLoopFuture<DashboardResponse> {
         let user = try req.auth.require(User.self)
-        guard user.accountType == AccountType.manager.rawValue else { throw Abort(.forbidden) }
+        guard user.accountType == AccountType.manager.rawValue || user.accountType == AccountType.superManager.rawValue else { throw Abort(.forbidden) }
         
         return Record.query(on: req.db)
+            .with(\.$location)
             .all()
             .map {
-                DashboardResponse(wishCount: $0.filter({ $0.recordType == RecordRequestData.RecordType.wish.rawValue }).count,
-                                  complaintCount: $0.filter({ $0.recordType == RecordRequestData.RecordType.complaint.rawValue }).count,
-                                  elektrikCount: $0.filter({ $0.domain == RecordRequestData.Domain.elektrik.rawValue }).count,
-                                  parkVeBahcelerCount: $0.filter({ $0.domain == RecordRequestData.Domain.parkVeBahceler.rawValue }).count,
-                                  ulasimCount: $0.filter({ $0.domain == RecordRequestData.Domain.ulasim.rawValue }).count,
-                                  temizlikCount: $0.filter({ $0.domain == RecordRequestData.Domain.temizlik.rawValue }).count,
-                                  altyapiCount: $0.filter({ $0.domain == RecordRequestData.Domain.altyapi.rawValue }).count,
-                                  pendingCount: $0.filter({ $0.status == RecordStatus.pending.rawValue }).count,
-                                  resolvedCount: $0.filter({ $0.status == RecordStatus.resolved.rawValue }).count,
-                                  deniedCount: $0.filter({ $0.status == RecordStatus.denied.rawValue }).count,
-                                  delayedCount: $0.filter({ $0.status == RecordStatus.delayed.rawValue }).count)
+                var records = $0
+                if user.accountType == AccountType.manager.rawValue {
+                    records = records.filter({ $0.location.id == user.$location.id })
+                }
+                return DashboardResponse(wishCount: records.filter({ $0.recordType == RecordRequestData.RecordType.wish.rawValue }).count,
+                                  complaintCount: records.filter({ $0.recordType == RecordRequestData.RecordType.complaint.rawValue }).count,
+                                  elektrikCount: records.filter({ $0.domain == RecordRequestData.Domain.elektrik.rawValue }).count,
+                                  parkVeBahcelerCount: records.filter({ $0.domain == RecordRequestData.Domain.parkVeBahceler.rawValue }).count,
+                                  ulasimCount: records.filter({ $0.domain == RecordRequestData.Domain.ulasim.rawValue }).count,
+                                  temizlikCount: records.filter({ $0.domain == RecordRequestData.Domain.temizlik.rawValue }).count,
+                                  altyapiCount: records.filter({ $0.domain == RecordRequestData.Domain.altyapi.rawValue }).count,
+                                  pendingCount: records.filter({ $0.status == RecordStatus.pending.rawValue }).count,
+                                  resolvedCount: records.filter({ $0.status == RecordStatus.resolved.rawValue }).count,
+                                  deniedCount: records.filter({ $0.status == RecordStatus.denied.rawValue }).count,
+                                  delayedCount: records.filter({ $0.status == RecordStatus.delayed.rawValue }).count)
             }
     }
     
     fileprivate func filterType(req: Request) throws -> EventLoopFuture<[Record.Public]> {
         let user = try req.auth.require(User.self)
-        guard user.accountType == AccountType.manager.rawValue else { throw Abort(.forbidden) }
+        guard user.accountType == AccountType.manager.rawValue || user.accountType == AccountType.superManager.rawValue else { throw Abort(.forbidden) }
         guard let recordType = req.parameters.get("type", as: String.self) else {
             throw Abort(.badRequest)
         }
@@ -58,14 +63,19 @@ struct DasboardController: RouteCollection {
             }
             .all()
             .flatMapThrowing {
-                return try $0.filter({ $0.recordType == recordType}).map {
+                var records = $0
+                if user.accountType == AccountType.manager.rawValue {
+                    records = records.filter({ $0.location.id == user.$location.id })
+                }
+                return try records.filter({ $0.recordType == recordType}).map {
                     try $0.asPublic()
-                }            }
+                }
+            }
     }
     
     fileprivate func filterDomain(req: Request) throws -> EventLoopFuture<[Record.Public]> {
         let user = try req.auth.require(User.self)
-        guard user.accountType == AccountType.manager.rawValue else { throw Abort(.forbidden) }
+        guard user.accountType == AccountType.manager.rawValue || user.accountType == AccountType.superManager.rawValue else { throw Abort(.forbidden) }
         guard let domain = req.parameters.get("domain", as: String.self) else {
             throw Abort(.badRequest)
         }
@@ -81,7 +91,11 @@ struct DasboardController: RouteCollection {
             }
             .all()
             .flatMapThrowing {
-                return try $0.filter({ $0.domain == domain }).map {
+                var records = $0
+                if user.accountType == AccountType.manager.rawValue {
+                    records = records.filter({ $0.location.id == user.$location.id })
+                }
+                return try records.filter({ $0.domain == domain }).map {
                     try $0.asPublic()
                 }
             }
@@ -89,7 +103,7 @@ struct DasboardController: RouteCollection {
     
     fileprivate func filterStatus(req: Request) throws -> EventLoopFuture<[Record.Public]> {
         let user = try req.auth.require(User.self)
-        guard user.accountType == AccountType.manager.rawValue else { throw Abort(.forbidden) }
+        guard user.accountType == AccountType.manager.rawValue || user.accountType == AccountType.superManager.rawValue else { throw Abort(.forbidden) }
         guard let status = req.parameters.get("status", as: String.self) else {
             throw Abort(.badRequest)
         }
@@ -105,7 +119,11 @@ struct DasboardController: RouteCollection {
             }
             .all()
             .flatMapThrowing {
-                return try $0.filter({ $0.status == status }).map {
+                var records = $0
+                if user.accountType == AccountType.manager.rawValue {
+                    records = records.filter({ $0.location.id == user.$location.id })
+                }
+                return try records.filter({ $0.status == status }).map {
                     try $0.asPublic()
                 }
             }

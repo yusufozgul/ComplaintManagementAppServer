@@ -10,4 +10,5 @@ import Foundation
 enum AccountType: String {
     case user = "USER"
     case manager = "MANAGER"
+    case superManager = "SUPERMANAGER"
 }
