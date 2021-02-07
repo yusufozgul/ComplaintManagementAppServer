@@ -16,11 +16,11 @@ public func configure(_ app: Application) throws {
     ContentConfiguration.global.use(decoder: decoder, for: .json)
     
     app.databases.use(.postgres(
-        hostname: Environment.get("DATABASE_HOST") ?? "hacathon-db.yusufozgul.com",
+        hostname: Environment.get("DATABASE_HOST") ?? "",
         port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? PostgresConfiguration.ianaPortNumber,
-        username: Environment.get("DATABASE_USERNAME") ?? "hackathonUser",
-        password: Environment.get("DATABASE_PASSWORD") ?? "hackathonPass",
-        database: Environment.get("DATABASE_NAME") ?? "db"
+        username: Environment.get("DATABASE_USERNAME") ?? "",
+        password: Environment.get("DATABASE_PASSWORD") ?? "",
+        database: Environment.get("DATABASE_NAME") ?? ""
     ), as: .psql)
     
     app.middleware.use(ErrorMiddleware.default(environment: app.environment))
