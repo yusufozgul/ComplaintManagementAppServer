@@ -17,7 +17,7 @@ struct CreateLocation_City: Migration {
     }
     
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        database.schema(Record.schema).delete()
+        database.schema(Location_City.schema).delete()
     }
 }
 
@@ -31,6 +31,6 @@ struct CreateLocation_District: Migration {
     }
     
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        database.schema(Record.schema).delete()
+        database.schema(Location_District.schema).delete()
     }
 }

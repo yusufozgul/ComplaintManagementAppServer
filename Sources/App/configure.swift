@@ -16,11 +16,11 @@ public func configure(_ app: Application) throws {
     ContentConfiguration.global.use(decoder: decoder, for: .json)
     
     app.databases.use(.postgres(
-        hostname: Environment.get("DATABASE_HOST") ?? "",
+        hostname: Environment.get("DATABASE_HOST") ?? "hacathon-db.yusufozgul.com",
         port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? PostgresConfiguration.ianaPortNumber,
-        username: Environment.get("DATABASE_USERNAME") ?? "",
-        password: Environment.get("DATABASE_PASSWORD") ?? "",
-        database: Environment.get("DATABASE_NAME") ?? ""
+        username: Environment.get("DATABASE_USERNAME") ?? "hackathonUser",
+        password: Environment.get("DATABASE_PASSWORD") ?? "hackathonPass",
+        database: Environment.get("DATABASE_NAME") ?? "db"
     ), as: .psql)
     
     app.middleware.use(ErrorMiddleware.default(environment: app.environment))
@@ -30,6 +30,7 @@ public func configure(_ app: Application) throws {
     app.migrations.add(CreateRecords())
     app.migrations.add(CreateLocation_City())
     app.migrations.add(CreateLocation_District())
+    app.migrations.add(CreateNotification())
 
     try app.autoMigrate().wait()
     try routes(app)

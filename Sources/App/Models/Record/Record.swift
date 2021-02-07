@@ -15,7 +15,7 @@ struct RecordRequestData: Content {
     var domain: Domain
     
     enum RecordType: String, Content {
-        case claim, complaint
+        case wish, complaint
     }
     
     enum Domain: String, Content {
@@ -43,6 +43,7 @@ final class Record: Model, Content {
         let district: String
         let recordType: String
         let domain: String
+        let status: String
     }
     
     static let schema = "records"
@@ -65,15 +66,21 @@ final class Record: Model, Content {
     @Field(key: "domain")
     var domain: String
     
+    @Field(key: "status")
+    var status: String
+    
     @Timestamp(key: "created_at", on: .create)
     var createdAt: Date?
     
     @Parent(key: "location_id")
     var location: Location_District
     
+    @Children(for: \.$record)
+    var answers: [Notification]
+    
     init() {}
     
-    init(id: Int? = nil, userId: User.IDValue, title: String,  body: String, locationID: Location_District.IDValue, recordType: String, domain: String) {
+    init(id: Int? = nil, userId: User.IDValue, title: String,  body: String, locationID: Location_District.IDValue, recordType: String, domain: String, status: String) {
         self.id = id
         self.$user.id = userId
         self.title = title
@@ -81,6 +88,7 @@ final class Record: Model, Content {
         self.$location.id = locationID
         self.recordType = recordType
         self.domain = domain
+        self.status = status
     }
 }
 
@@ -94,7 +102,8 @@ extension Record {
                city: location.city.cityName,
                district: location.districtName,
                recordType: recordType,
-               domain: domain)
+               domain: domain,
+               status: status)
     }
 }
 
