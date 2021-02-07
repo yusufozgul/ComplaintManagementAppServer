@@ -16,6 +16,7 @@ struct UserController: RouteCollection {
         tokenProtected.get("records", use: getRecords)
         
         let answerRoute = tokenProtected.grouped("answer")
+        answerRoute.get("", use: getAnsweredRecords)
         answerRoute.get(":recordId", use: getRecordAnswer)
     }
     
@@ -60,6 +61,29 @@ struct UserController: RouteCollection {
             .flatMapThrowing {
                 guard $0.record.$user.id == user.id ?? 0 else { throw Abort(.notFound) }
                 return try $0.asPublic()
+            }
+    }
+    
+    fileprivate func getAnsweredRecords(req: Request) throws -> EventLoopFuture<[Notification.Public]> {
+        let user = try req.auth.require(User.self)
+        
+        return Notification.query(on: req.db)
+            .with(\.$record) {
+                $0.with(\.$user) {
+                    $0.with(\.$location) {
+                        $0.with(\.$city)
+                    }
+                }
+                $0.with(\.$location) {
+                    $0.with(\.$city)
+                }
+            }
+            .all()
+            .flatMapThrowing {
+                let records = $0.filter({ $0.record.$user.id == user.id ?? 0 })
+                return records.compactMap({
+                    return try? $0.asPublic()
+                })
             }
     }
 }
