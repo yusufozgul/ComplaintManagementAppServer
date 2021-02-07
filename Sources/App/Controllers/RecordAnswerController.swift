@@ -21,7 +21,7 @@ struct RecordAnswerController: RouteCollection {
     
     fileprivate func create(req: Request) throws -> EventLoopFuture<ApiResponse<EmptyResponse>> {
         let user = try req.auth.require(User.self)
-        guard user.accountType == AccountType.manager.rawValue else { throw Abort(.forbidden) }
+        guard user.accountType == AccountType.manager.rawValue || user.accountType == AccountType.superManager.rawValue else { throw Abort(.forbidden) }
         try RecordAnswerRequestData.validate(content: req)
         let data = try req.content.decode(RecordAnswerRequestData.self)
         let answer = Notification(recordId: data.recordId,
